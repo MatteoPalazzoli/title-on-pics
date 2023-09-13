@@ -4,50 +4,56 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
-#costanti
+#constants
 W, H = (304, 405)
 titleSize, subtitleSize = (50, 30)
 titleH, subtitleH = (H*25/91, H*54/91)
-lineWidthTitle, lineWidthSubt = (13, 25) #max caratteri per riga
+lineWidthTitle, lineWidthSubt = (13, 25) #max characters per row
 
-#scelta del file
+#file browsing
 def browseFiles():
     global filename
     filename = filedialog.askopenfilename(initialdir = __file__,
-                                          title = "Scegli la foto")
+                                          title = "Choose the pic")
     fileLabel.configure(text="File scelto: " + filename)
 
 #editing foto   
 def compute():
-    #apertura foto
+
+    #open pic
     image = Image.open(filename)
     imW, imH = image.size
     image = image.crop(((imW-W)/2, (imH-H)/2, (imW-W)/2+W, (imH-H)/2+H))
-    #inscurimento
+    
+    #lower the brightness
     enhancer = ImageEnhance.Brightness(image)
     image = enhancer.enhance(0.5)
-    draw= ImageDraw.Draw(image)
-    #titolo
+    draw = ImageDraw.Draw(image)
+    
+    #title
     text = titleTf.get()
     myFont = ImageFont.truetype(__file__+"/../bn.ttf", titleSize)
     text = textwrap.fill(text, lineWidthTitle)
     offset = 0;
     for line in text.splitlines():
-        w, h = draw.textsize(line, font = myFont)
-        draw.text(((W-w)/2, titleH + offset), line, fill = "white", font = myFont)
+        (left, top, right, bottom) = draw.textbbox([0,0], text = line, font = myFont)
+        draw.text(((W-(right - left))/2, titleH + offset), line, fill = "white", font = myFont)
         offset += titleSize
-    #sottotitolo
+        
+    #subtitle
     text = subtitleTf.get()
     myFont = ImageFont.truetype(__file__+"/../Songbird.otf", subtitleSize)
     text = textwrap.fill(text, lineWidthSubt)
     offset = 0;
     for line in text.splitlines():
-        w, h = draw.textsize(line, font = myFont)
-        draw.text(((W-w)/2, subtitleH + offset), line, fill = "white", font = myFont)
+        (left, top, right, bottom) = draw.textbbox([0,0], text = line, font = myFont)
+        draw.text(((W-(right-left))/2, subtitleH + offset), line, fill = "white", font = myFont)
         offset += subtitleSize
-    #salvataggio
+        
+    #saving
+    image = image.convert('RGB');
     image.save(__file__+"/../car_result.jpeg")
-    msgbox = tk.messagebox.showinfo(title= "Operazione completata", message="La tua foto è stata salvata.")
+    msgbox = tk.messagebox.showinfo(title= "OK", message="Your pic has been saved.")
 
 #window
 window = tk.Tk()
@@ -61,22 +67,22 @@ bot = tk.Frame(window)
 top.pack()
 bot.pack()
 
-btn = tk.Button(fileFrame, text = "Scegli foto", fg = "blue", command = browseFiles)
+btn = tk.Button(fileFrame, text = "Choose photo", fg = "blue", command = browseFiles)
 btn.pack(side = tk.LEFT)
 fileLabel = tk.Label(fileFrame, text = "", width = 100, height = 4)
 fileLabel.pack(side = tk.LEFT)
 
-titleLabel = tk.Label(top, text="Titolo: ")
+titleLabel = tk.Label(top, text="Your title: ")
 titleLabel.pack(side= tk.LEFT)
 titleTf = tk.Entry(top)
 titleTf.pack(side=tk.LEFT)
 
-subtitleLabel = tk.Label(bot, text="Sottotitolo: ")
+subtitleLabel = tk.Label(bot, text="Your subtitle: ")
 subtitleLabel.pack(side= tk.LEFT)
 subtitleTf = tk.Entry(bot)
 subtitleTf.pack(side= tk.LEFT)
 
-tk.Button(window, text="Vai!", command = compute).pack()
+tk.Button(window, text="GO", command = compute).pack()
 
 window.mainloop()
 
