@@ -15,17 +15,19 @@ def browseFiles():
     global filename
     filename = filedialog.askopenfilename(initialdir = __file__,
                                           title = "Choose the pic")
-    fileLabel.configure(text="File scelto: " + filename)
+    fileLabel.configure(text="Chosen file: " + filename)
 
 #editing foto   
 def compute():
 
-    #open pic
+    #open the pic
     image = Image.open(filename)
     imW, imH = image.size
+
+    # crop to size W x H, centered
     image = image.crop(((imW-W)/2, (imH-H)/2, (imW-W)/2+W, (imH-H)/2+H))
     
-    #lower the brightness
+    #lower the brightness to half
     enhancer = ImageEnhance.Brightness(image)
     image = enhancer.enhance(0.5)
     draw = ImageDraw.Draw(image)
