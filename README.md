@@ -1,8 +1,9 @@
 # Title on pics
-A simple script to make standards photos with a text (title + subtitle) over a background image, without using a full photo editing software.
+A simple script to add a text (title + subtitle) over a background image, to avoid using a complex photo-editing software.  
+This script first crops the image to 304 x 405, then adjust the brightness and attaches the text.
 ## Prerequisites
-- Python3+
-- Pillow (install with ```pip install Pillow```)
+- Python3
+- Pillow (install with `pip install Pillow`)
 ## Running
-### GUI
-Run `GUI.py`, then choose an image, title and subtitle and click "GO". The result will be saved in the same folder of the image with the name `car_result.jpg`
+Run `GUI.py`, then choose an image to load, write title and subtitle and click on "GO".  
+The result will be saved in the same folder of the image with the name `car_result.jpg`
