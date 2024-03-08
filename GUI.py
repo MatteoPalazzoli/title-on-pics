@@ -1,8 +1,10 @@
 from PIL import Image, ImageFont, ImageDraw, ImageEnhance
 import textwrap
 import tkinter as tk
-from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import Button
+from tkinter import ttk
+import os
 
 #constants
 W, H = (304, 405)
@@ -13,27 +15,29 @@ lineWidthTitle, lineWidthSubt = (13, 25) #max characters per row
 #file browsing
 def browseFiles():
     global filename
-    filename = filedialog.askopenfilename(initialdir = __file__,
+    global path
+    viewBtn["state"] = "disabled"
+    path = filedialog.askopenfilename(initialdir = __file__,
                                           title = "Choose the pic")
-    fileLabel.configure(text="Chosen file: " + filename)
+    fileLabel.configure(text="Chosen pic: " + path)
+    filename = os.path.basename(path)
+    filename = os.path.splitext(filename)[0]
 
-#editing foto   
+#editing foto
 def compute():
 
-    #open the pic
-    image = Image.open(filename)
+    #open pic
+    image = Image.open(path)
     imW, imH = image.size
-
-    # crop to size W x H, centered
     image = image.crop(((imW-W)/2, (imH-H)/2, (imW-W)/2+W, (imH-H)/2+H))
     
-    #lower the brightness to half
+    #lower the brightness
     enhancer = ImageEnhance.Brightness(image)
     image = enhancer.enhance(0.5)
     draw = ImageDraw.Draw(image)
     
-    #title
-    text = titleTf.get()
+    #put the title
+    text = titleTextArea.get()
     myFont = ImageFont.truetype(__file__+"/../bn.ttf", titleSize)
     text = textwrap.fill(text, lineWidthTitle)
     offset = 0;
@@ -42,8 +46,8 @@ def compute():
         draw.text(((W-(right - left))/2, titleH + offset), line, fill = "white", font = myFont)
         offset += titleSize
         
-    #subtitle
-    text = subtitleTf.get()
+    #put the subtitle
+    text = subtitleTextArea.get()
     myFont = ImageFont.truetype(__file__+"/../Songbird.otf", subtitleSize)
     text = textwrap.fill(text, lineWidthSubt)
     offset = 0;
@@ -52,39 +56,61 @@ def compute():
         draw.text(((W-(right-left))/2, subtitleH + offset), line, fill = "white", font = myFont)
         offset += subtitleSize
         
-    #saving
+    #save the image
     image = image.convert('RGB');
-    image.save(__file__+"/../car_result.jpeg")
-    msgbox = tk.messagebox.showinfo(title= "OK", message="Your pic has been saved.")
+    image.save(__file__+"/../car_"+filename+".jpeg")
+    #msgbox = tk.messagebox.showinfo(title= "OK", message="Your pic has been saved.")
+    resLabel.configure(text="File saved.")
+    viewBtn["state"] = "normal"
 
-#window
+def open_pic():
+    #view the image
+    image = Image.open(__file__+"/../car_"+filename+".jpeg")
+    image.show()
+
+#open a window
 window = tk.Tk()
-window.title("AutoCarousel GUI v1.0")
-window.geometry("600x200")
+window.title("AutoCarousel")
+window.geometry("450x200")
 
-fileFrame = tk.Frame(window)
-fileFrame.pack()
-top = tk.Frame(window)
-bot = tk.Frame(window)
-top.pack()
-bot.pack()
+#layout
+window.columnconfigure(0, weight=1)
+window.columnconfigure(1, weight=2)
 
-btn = tk.Button(fileFrame, text = "Choose photo", fg = "blue", command = browseFiles)
-btn.pack(side = tk.LEFT)
-fileLabel = tk.Label(fileFrame, text = "", width = 100, height = 4)
-fileLabel.pack(side = tk.LEFT)
+# view the window elements
 
-titleLabel = tk.Label(top, text="Your title: ")
-titleLabel.pack(side= tk.LEFT)
-titleTf = tk.Entry(top)
-titleTf.pack(side=tk.LEFT)
+#file choice
+fileBtn = ttk.Button(window, text = "Choose photo", command = browseFiles)
+fileBtn.grid(column=0, row=0, columnspan=1, sticky=tk.W, padx=5, pady=5)
 
-subtitleLabel = tk.Label(bot, text="Your subtitle: ")
-subtitleLabel.pack(side= tk.LEFT)
-subtitleTf = tk.Entry(bot)
-subtitleTf.pack(side= tk.LEFT)
+fileLabel = ttk.Label(window, text = "")
+fileLabel.grid(column=1, row=0, sticky=tk.E, padx=5, pady=5)
 
-tk.Button(window, text="GO", command = compute).pack()
+# title input
+titleLabel = ttk.Label(window, text="Your title: ")
+titleLabel.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+titleTextArea = ttk.Entry(window)
+titleTextArea.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
 
+#subtitle input
+subtitleLabel = ttk.Label(window, text="Your subtitle: ")
+subtitleLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
+subtitleTextArea = ttk.Entry(window)
+subtitleTextArea.grid(column=1, row=2, sticky=tk.W, padx=5, pady=5)
+
+# focus
+titleTextArea.focus()
+
+# show the bottom line
+goBtn = ttk.Button(window, text="GO", command = compute)
+goBtn.grid(column=0, row=3, sticky=tk.W, padx=5, pady=5)#.pack(side = tk.LEFT)
+
+resLabel = ttk.Label(window, text = "")
+resLabel.grid(column=1, row=3, sticky=tk.W, padx=5, pady=5) #.pack(side = tk.LEFT)
+
+viewBtn = ttk.Button(window, text="Open result", command = open_pic)
+viewBtn["state"] = "disabled"
+viewBtn.grid(column=1, row=3, sticky=tk.E, padx=5, pady=5) #.pack(side = tk.RIGHT)
+
+# spin
 window.mainloop()
-
