@@ -13,6 +13,8 @@ titleSize, subtitleSize = (50, 30)
 titleH, subtitleH = (H*25/91, H*54/91)
 lineWidthTitle, lineWidthSubt = (13, 25) #max characters per row
 
+color = black_color
+
 #file browsing
 def browseFiles():
     global filename
@@ -26,8 +28,9 @@ def browseFiles():
 
 # change padding filling color
 def checkbutton_clicked():
+    global color
     v = checkbutton_value.get()
-    if v == True:
+    if v == 1:
         color = white_color
         colorLabel.configure(text="(Padding fill is now white)")
     else:
@@ -46,13 +49,13 @@ def compute():
     
     # add paddings if the image is too small
     if padding_left > 0:
-        new_img = Image.new(image.mode, (W, imH), white_color)
+        new_img = Image.new(image.mode, (W, imH), color)
         new_img.paste(image, (padding_left, 0))
         image = new_img
         imW = W
     
     if padding_top > 0:
-        new_img = Image.new(image.mode, (imW, H), white_color)
+        new_img = Image.new(image.mode, (imW, H), color)
         new_img.paste(image, (0, padding_top))
         image = new_img
         imH = H
