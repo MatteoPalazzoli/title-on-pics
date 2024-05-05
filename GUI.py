@@ -1,13 +1,14 @@
-from PIL import Image, ImageFont, ImageDraw, ImageEnhance
+import os
 import textwrap
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import Button
-from tkinter import ttk
-import os
+from PIL import Image, ImageFont, ImageDraw, ImageEnhance
+from tkinter import filedialog, Button, ttk
+from math import floor
 
 #constants
 W, H = (304, 405)
+white_color = (255,255,255)
+black_color = (0,0,0)
 titleSize, subtitleSize = (50, 30)
 titleH, subtitleH = (H*25/91, H*54/91)
 lineWidthTitle, lineWidthSubt = (13, 25) #max characters per row
@@ -18,10 +19,20 @@ def browseFiles():
     global path
     viewBtn["state"] = "disabled"
     path = filedialog.askopenfilename(initialdir = __file__,
-                                          title = "Choose the pic")
-    fileLabel.configure(text="Chosen pic: " + path)
+                                          title = "Choose file")
+    fileLabel.configure(text="Chosen file: " + path)
     filename = os.path.basename(path)
     filename = os.path.splitext(filename)[0]
+
+# change padding filling color
+def checkbutton_clicked():
+    v = checkbutton_value.get()
+    if v == True:
+        color = white_color
+        colorLabel.configure(text="(Padding fill is now white)")
+    else:
+        color = black_color
+        colorLabel.configure(text="(Padding fill is now black)")
 
 #editing foto
 def compute():
@@ -29,6 +40,24 @@ def compute():
     #open pic
     image = Image.open(path)
     imW, imH = image.size
+    
+    padding_left = floor((W-imW)/2)
+    padding_top = floor((H-imH)/2)
+    
+    # add paddings if the image is too small
+    if padding_left > 0:
+        new_img = Image.new(image.mode, (W, imH), white_color)
+        new_img.paste(image, (padding_left, 0))
+        image = new_img
+        imW = W
+    
+    if padding_top > 0:
+        new_img = Image.new(image.mode, (imW, H), white_color)
+        new_img.paste(image, (0, padding_top))
+        image = new_img
+        imH = H
+    
+    # crop image at the center if too large
     image = image.crop(((imW-W)/2, (imH-H)/2, (imW-W)/2+W, (imH-H)/2+H))
     
     #lower the brightness
@@ -59,7 +88,6 @@ def compute():
     #save the image
     image = image.convert('RGB');
     image.save(__file__+"/../car_"+filename+".jpeg")
-    #msgbox = tk.messagebox.showinfo(title= "OK", message="Your pic has been saved.")
     resLabel.configure(text="File saved.")
     viewBtn["state"] = "normal"
 
@@ -80,37 +108,46 @@ window.columnconfigure(1, weight=2)
 # view the window elements
 
 #file choice
-fileBtn = ttk.Button(window, text = "Choose photo", command = browseFiles)
+fileBtn = ttk.Button(window, text = "Choose file", command = browseFiles)
 fileBtn.grid(column=0, row=0, columnspan=1, sticky=tk.W, padx=5, pady=5)
 
 fileLabel = ttk.Label(window, text = "")
 fileLabel.grid(column=1, row=0, sticky=tk.E, padx=5, pady=5)
 
 # title input
-titleLabel = ttk.Label(window, text="Your title: ")
+titleLabel = ttk.Label(window, text="Title: ")
 titleLabel.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 titleTextArea = ttk.Entry(window)
 titleTextArea.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
+titleTextArea.focus()
 
 #subtitle input
-subtitleLabel = ttk.Label(window, text="Your subtitle: ")
+subtitleLabel = ttk.Label(window, text="Subtitle: ")
 subtitleLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 subtitleTextArea = ttk.Entry(window)
 subtitleTextArea.grid(column=1, row=2, sticky=tk.W, padx=5, pady=5)
 
-# focus
-titleTextArea.focus()
+# padding checkbox
+checkbutton_value = tk.BooleanVar()
+checkbutton = ttk.Checkbutton(
+    text="White fill",
+    variable=checkbutton_value,
+    command=checkbutton_clicked
+)
+checkbutton.grid(column=0, row=3, sticky=tk.W, padx=5, pady=5)
+colorLabel = ttk.Label(window, text="(Padding fill is now black)")
+colorLabel.grid(column=1, row=3, sticky=tk.W, padx=5, pady=5)
 
 # show the bottom line
 goBtn = ttk.Button(window, text="GO", command = compute)
-goBtn.grid(column=0, row=3, sticky=tk.W, padx=5, pady=5)#.pack(side = tk.LEFT)
+goBtn.grid(column=0, row=4, sticky=tk.W, padx=5, pady=5)
 
 resLabel = ttk.Label(window, text = "")
-resLabel.grid(column=1, row=3, sticky=tk.W, padx=5, pady=5) #.pack(side = tk.LEFT)
+resLabel.grid(column=1, row=4, sticky=tk.W, padx=5, pady=5)
 
 viewBtn = ttk.Button(window, text="Open result", command = open_pic)
 viewBtn["state"] = "disabled"
-viewBtn.grid(column=1, row=3, sticky=tk.E, padx=5, pady=5) #.pack(side = tk.RIGHT)
+viewBtn.grid(column=1, row=4, sticky=tk.E, padx=5, pady=5)
 
 # spin
 window.mainloop()
